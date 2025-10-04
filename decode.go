@@ -89,18 +89,3 @@ func readU16Len(r io.Reader) (uint16, error) {
 	}
 	return n, nil
 }
-
-// Read from the io.Reader up to 4b294m bytes forwards.
-func readU32Len(r io.Reader) (uint32, error) {
-	var n uint32
-	var readLimit uint32 = 64 * BytesInMegabyte // 64MB
-
-	if err := binary.Read(r, binary.BigEndian, &n); err != nil {
-		return 0, fmt.Errorf("read length: %w", err)
-	}
-	// Sanity check - May want to store this value somewhere.
-	if n > readLimit {
-		return 0, errors.New("declared length exceeds 64MB safety limit")
-	}
-	return n, nil
-}
