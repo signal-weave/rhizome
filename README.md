@@ -36,6 +36,8 @@ type Object struct {
 
 	// The acknowledgement/negative acknowledgement status, like http return
 	// code, signifying the result handling the Object.
+	// Unlike HTTP, Rhizome does not have concrete return codes and leaves it up
+	// to the application to manage/handle them.
 	AckPlcy uint8
 
 	// UID is an application construct, it isn't concretely defined at the
