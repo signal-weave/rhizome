@@ -33,8 +33,8 @@ func writeString8(buf *bytes.Buffer, s string) error {
 //--------Field Prefixes--------------------------------------------------------
 
 // Prefix with total length (u16 big-endian).
-func WriteU16Len(buf *bytes.Buffer, n uint32) {
+func WriteU16Len(buf *bytes.Buffer, n uint16) {
 	var tmp [2]byte
-	binary.BigEndian.PutUint32(tmp[:], n)
+	binary.BigEndian.PutUint16(tmp[:], n)
 	buf.Write(tmp[:])
 }
