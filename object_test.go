@@ -16,13 +16,13 @@ func TestEncodeResponse_V1_MatchesEncodeResponseV1(t *testing.T) {
 		Ack: ACK_SENT,
 	}
 	obj := &Object{
-		Protocol:  PROTOCOL_V1,
+		Version:   PROTOCOL_V1,
 		Response:  &resp,
 		Responder: cr,
 	}
 
 	// Act
-	got, err := EncodeResponse(obj)
+	got, err := obj.EncodeResponse()
 	if err != nil {
 		t.Fatalf("EncodeResponse returned error: %v", err)
 	}
@@ -44,12 +44,12 @@ func TestEncodeResponse_UnsupportedProtocol_ReturnsErrorWithRemoteAddr(
 
 	// Use an unsupported protocol (anything not PROTOCOL_V1).
 	obj := &Object{
-		Protocol:  0,
+		Version:   0,
 		Response:  nil, // not used along this branch
 		Responder: cr,
 	}
 
-	out, err := EncodeResponse(obj)
+	out, err := obj.EncodeResponse()
 	if err == nil {
 		t.Fatalf("expected error for unsupported protocol, got nil")
 	}

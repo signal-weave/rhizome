@@ -28,7 +28,7 @@ type Response struct {
 type Object struct {
 	// Which protocol decoding method that shoud be used to construct the
 	// Object.
-	Protocol uint8
+	Version uint8
 
 	Responder *ConnResponder
 	Response  *Response
@@ -128,7 +128,7 @@ func (obj *Object) ResponeWithAck(ack uint8) error {
 	if obj.Responder != nil {
 		obj.Response.Ack = ack
 
-		msg, err := EncodeResponse(obj)
+		msg, err := obj.EncodeResponse()
 		if err != nil {
 			return err
 		}
@@ -138,6 +138,21 @@ func (obj *Object) ResponeWithAck(ack uint8) error {
 	}
 
 	return errors.New("responder is nil")
+}
+
+// EncodeResponse serializes obj and returns encoded byte array or error.
+func (obj *Object) EncodeResponse() ([]byte, error) {
+	switch obj.Version {
+
+	case PROTOCOL_V1:
+		return EncodeResponseV1(*obj.Response), nil
+
+	default:
+		err := fmt.Errorf(
+			"unable to encode response for %s", obj.Responder.RemoteAddr(),
+		)
+		return nil, err
+	}
 }
 
 // parseProtoVer extracts only the protocol version and returns it along with
@@ -151,6 +166,8 @@ func parseProtoVer(data []byte) (uint8, []byte, error) {
 	return ver, data[u8len:], nil
 }
 
+// DecodeFrame takes an array of bytes and a *ConnResponder to construct a
+// *Object or error.
 func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 	version, rest, err := parseProtoVer(line)
 	if err != nil {
@@ -159,7 +176,7 @@ func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 	}
 
 	obj := &Object{
-		Protocol:  version,
+		Version:   version,
 		Responder: resp,
 	}
 
@@ -183,21 +200,6 @@ func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 
 	default:
 		err := errors.New("unable to parse protocol object")
-		return nil, err
-	}
-}
-
-// EncodeResponse serializes obj and returns encoded byte array or error.
-func EncodeResponse(obj *Object) ([]byte, error) {
-	switch obj.Protocol {
-
-	case PROTOCOL_V1:
-		return EncodeResponseV1(*obj.Response), nil
-
-	default:
-		err := fmt.Errorf(
-			"unable to encode response for %s", obj.Responder.RemoteAddr(),
-		)
 		return nil, err
 	}
 }
