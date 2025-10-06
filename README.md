@@ -11,8 +11,9 @@ application and application-api level.
 The first field in the protocol is the version number which dictates the
 decoding method to generate a `Rhizome.Object`.
 
-Objects can be constructed from a byte array using `DecodeFrame()` and can be
-encoded back to a byte array using `Object.EncodeResponse()`.
+Objects can be constructed from a byte array using `DecodeFrame()`.
+Using `Object.EncodeResponse()` a `rhizome.Object` will send back an ack code
+with a uid value to the sender's address.
 
 Rhizome message objects look like the following:
 
