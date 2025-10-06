@@ -1,4 +1,4 @@
-# rhizome
+# Rhizome
 ### The Rhizome protocol for use with Signal Weave applications.
 
 Signal Weave applications share the Rhizome message object shape but treat
