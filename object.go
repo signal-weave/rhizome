@@ -203,3 +203,17 @@ func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 		return nil, err
 	}
 }
+
+// EncodeResponse creates ack/nack from object tokens or error.
+func EncodeResponse(obj *Object) ([]byte, error) {
+	switch obj.Version {
+
+	case uint8(1):
+		return EncodeResponseV1(*obj.Response), nil
+
+	default:
+		return nil, fmt.Errorf(
+			"unable to encode response for %s", obj.Responder.RemoteAddr(),
+		)
+	}
+}
