@@ -18,7 +18,7 @@ import (
 //--------Integers--------------------------------------------------------------
 
 func readU8(r io.Reader, out *uint8) error {
-	// endian is irrelevent for 1 byte but Read() requires it.
+	// endian is irrelevant for 1 byte but Read() requires it.
 	return binary.Read(r, binary.BigEndian, out)
 }
 
