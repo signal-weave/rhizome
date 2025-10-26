@@ -91,7 +91,7 @@ func decodeV1(data []byte, obj *Object) (*Object, error) {
 	// Response
 	response := &Response{
 		UID: obj.UID,
-		Ack: ACK_UNKNOWN,
+		Ack: AckUnknown,
 	}
 	obj.Response = response
 
@@ -198,7 +198,7 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 
 //--------Encoding--------------------------------------------------------------
 
-// Encodes a protocol.Response object into []byte.
+// EncodeResponseV1 encodes a protocol.Response object into []byte.
 func EncodeResponseV1(response Response) []byte {
 	body := bytes.NewBuffer(nil)
 	_ = writeString8(body, response.UID)

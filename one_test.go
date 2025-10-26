@@ -45,7 +45,7 @@ func decodeV1Frame(t *testing.T, frame []byte) (uid string, ack byte) {
 func TestEncodeResponseV1_EmptyUID(t *testing.T) {
 	resp := Response{
 		UID: "",
-		Ack: ACK_SENT, // 1
+		Ack: AckSent, // 1
 	}
 
 	got := EncodeResponseV1(resp)
@@ -63,15 +63,15 @@ func TestEncodeResponseV1_EmptyUID(t *testing.T) {
 	if uid != "" {
 		t.Fatalf("uid = %q, want empty", uid)
 	}
-	if ack != ACK_SENT {
-		t.Fatalf("ack = %d, want %d", ack, ACK_SENT)
+	if ack != AckSent {
+		t.Fatalf("ack = %d, want %d", ack, AckSent)
 	}
 }
 
 func TestEncodeResponseV1_ShortUID(t *testing.T) {
 	resp := Response{
 		UID: "abc",
-		Ack: ACK_SENT, // 1
+		Ack: AckSent, // 1
 	}
 
 	got := EncodeResponseV1(resp)
@@ -89,8 +89,8 @@ func TestEncodeResponseV1_ShortUID(t *testing.T) {
 	if uid != "abc" {
 		t.Fatalf("uid = %q, want %q", uid, "abc")
 	}
-	if ack != ACK_SENT {
-		t.Fatalf("ack = %d, want %d", ack, ACK_SENT)
+	if ack != AckSent {
+		t.Fatalf("ack = %d, want %d", ack, AckSent)
 	}
 }
 

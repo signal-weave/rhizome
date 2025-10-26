@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Connection responder that manages the net.Conn created by the server.
+// ConnResponder manages the net.Conn created by the server.
 // To be used throughout message managing so no routing components need to own
 // the conn object.
 type ConnResponder struct {
@@ -19,12 +19,12 @@ func NewConnResponder(conn net.Conn) *ConnResponder {
 	}
 }
 
-// Shorthand for ConnResponder.C.RemoteAddr().String()
+// RemoteAddr is shorthand for ConnResponder.C.RemoteAddr().String()
 func (cr *ConnResponder) RemoteAddr() string {
 	return cr.C.RemoteAddr().String()
 }
 
-// Send the given payload back to the connection's return address.
+// Write sends the given payload back to the connection's return address.
 func (cr *ConnResponder) Write(b []byte) error {
 	cr.mu.Lock()
 	defer cr.mu.Unlock()

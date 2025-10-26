@@ -13,10 +13,10 @@ func TestEncodeResponse_V1_MatchesEncodeResponseV1(t *testing.T) {
 	// Build a minimal Response and Object for protocol v1.
 	resp := Response{
 		UID: "abc-123",
-		Ack: ACK_SENT,
+		Ack: AckSent,
 	}
 	obj := &Object{
-		Version:   PROTOCOL_V1,
+		Version:   ProtocolV1,
 		Response:  &resp,
 		Responder: cr,
 	}
@@ -42,7 +42,7 @@ func TestEncodeResponse_UnsupportedProtocol_ReturnsErrorWithRemoteAddr(
 	fc := newFakeConn("192.168.1.77:6000")
 	cr := &ConnResponder{C: fc}
 
-	// Use an unsupported protocol (anything not PROTOCOL_V1).
+	// Use an unsupported protocol (anything not ProtocolV1).
 	obj := &Object{
 		Version:   0,
 		Response:  nil, // not used along this branch

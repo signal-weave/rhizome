@@ -8,10 +8,12 @@ import (
 
 //--------Integers--------------------------------------------------------------
 
+// writeU8 converts uint8 value n into byte, inserting it into buf.
 func writeU8(buf *bytes.Buffer, n uint8) {
 	_ = buf.WriteByte(n)
 }
 
+// writeU16 converts uint16 value n into bytes, inserting it into buf.
 func writeU16(buf *bytes.Buffer, n uint16) {
 	var tmp [2]byte
 	binary.BigEndian.PutUint16(tmp[:], n)
@@ -20,6 +22,7 @@ func writeU16(buf *bytes.Buffer, n uint16) {
 
 //--------String----------------------------------------------------------------
 
+// writeString8 converts uint8 len string s into a byte array.
 func writeString8(buf *bytes.Buffer, s string) error {
 	b := []byte(s)
 	if len(b) > 255 {
@@ -32,7 +35,7 @@ func writeString8(buf *bytes.Buffer, s string) error {
 
 //--------Field Prefixes--------------------------------------------------------
 
-// Prefix with total length (u16 big-endian).
+// WriteU16Len prefixes with total length (u16 big-endian).
 func WriteU16Len(buf *bytes.Buffer, n uint16) {
 	var tmp [2]byte
 	binary.BigEndian.PutUint16(tmp[:], n)

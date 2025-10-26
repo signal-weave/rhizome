@@ -4,67 +4,64 @@ package rhizome
 
 const (
 	BytesInKilobyte = 1024
-	BytesInMegabyte = 1024 * BytesInKilobyte
-	BytesInGigabyte = 1024 * BytesInMegabyte
 )
 
 // -------Objects---------------------------------------------------------------
 
 const (
-	PROTOCOL_V1 = uint8(1)
+	ProtocolV1 = uint8(1)
 )
 
 const (
-	OBJ_UNKNOWN uint8 = 0
+	ObjUnknown uint8 = 0
 
-	OBJ_DELIVERY    uint8 = 1
-	OBJ_TRANSFORMER uint8 = 2
-	OBJ_SUBSCRIBER  uint8 = 3
-	OBJ_CHANNEL     uint8 = 4
+	ObjDelivery    uint8 = 1
+	ObjTransformer uint8 = 2
+	ObjSubscriber  uint8 = 3
+	ObjChannel     uint8 = 4
 
-	OBJ_GLOBALS uint8 = 20
+	ObjGlobals uint8 = 20
 
-	OBJ_Action uint8 = 50
+	ObjAction uint8 = 50
 )
 
 const (
-	CMD_UNKNOWN uint8 = 0
+	CmdUnknown uint8 = 0
 
-	CMD_SEND   uint8 = 1
-	CMD_ADD    uint8 = 2
-	CMD_REMOVE uint8 = 3
+	CmdSend   uint8 = 1
+	CmdAdd    uint8 = 2
+	CmdRemove uint8 = 3
 
-	CMD_UPDATE uint8 = 20
+	CmdUpdate uint8 = 20
 
-	CMD_SIGTERM uint8 = 50
+	CmdSigterm uint8 = 50
 )
 
 // -------Acks/Nacks------------------------------------------------------------
 
 const (
-	// Sender does not wish to receive ack.
-	ACK_PLCY_NOREPLY uint8 = 0
+	// AckPlcyNoreply signifies sender does not wish to receive ack.
+	AckPlcyNoreply uint8 = 0
 
-	// Sender wants to get ack when broker delivers to final subscriber.
+	// AckPlcyOnsent signifies sender wants to get ack when broker delivers to
+	// final subscriber.
 	// This often means sending the ack back after the final channel has
 	// processed the message object.
-	ACK_PLCY_ONSENT uint8 = 1
+	AckPlcyOnsent uint8 = 1
 )
 
 const (
-	ACK_UNKNOWN uint8 = 0 // Undetermined
+	AckUnknown uint8 = 0 // Undetermined
 
-	// Broker was able to and finished sending message to subscribers.
-	ACK_SENT uint8 = 1
+	// AckSent means broker was able to and finished sending message to
+	// subscribers.
+	AckSent uint8 = 1
 
-	// This isn't used by the broker, but its here for clarity.
-	// Client APIs do use this value when timing out while trying to connect to
-	// the broker.
-	// If no ack was gotten before the timeout time, a response with ACK_TIMEOUT
-	// is generated and returned instead.
-	ACK_TIMEOUT uint8 = 10
+	// AckTimeout is generated as a returned value if no ack aws gotten before
+	// the timeout time elapsed.
+	AckTimeout uint8 = 10
 
-	ACK_CHANNEL_NOT_FOUND      uint8 = 20
-	ACK_CHANNEL_ALREADY_EXISTS uint8 = 21
-	ACK_ROUTE_NOT_FOUND        uint8 = 30
+	AckChannelNotFound      uint8 = 20
+	AckChannelAlreadyExists uint8 = 21
+	AckRouteNotFound        uint8 = 30
 )

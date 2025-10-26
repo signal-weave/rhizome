@@ -12,14 +12,14 @@ import (
 // The main protocol version detection and parsing version handling.
 // -----------------------------------------------------------------------------
 
-// A response represents the ack value and the corresponding message's UID to
+// Response represents the ack value and the corresponding message's UID to
 // send back to the producer.
 type Response struct {
 	Ack uint8
 	UID string
 }
 
-// An object is a struct that is decoded from the incoming byte stream and ran
+// Object is a struct that is decoded from the incoming byte stream and ran
 // through the system.
 //
 // Objects contain a *ConnResponder for communicating with the sender and a
@@ -73,7 +73,7 @@ func NewObject(
 	return &Object{
 		Response: &Response{
 			UID: uid,
-			Ack: ACK_UNKNOWN,
+			Ack: AckUnknown,
 		},
 
 		ObjType: objType,
@@ -92,7 +92,7 @@ func NewObject(
 	}
 }
 
-// Prints each field on the object...
+// PrintValues prints each field on the object...
 func (obj *Object) PrintValues() {
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Println("ObjType:", obj.ObjType)
@@ -133,8 +133,7 @@ func (obj *Object) ResponeWithAck(ack uint8) error {
 			return err
 		}
 
-		obj.Responder.Write(msg)
-		return nil
+		return obj.Responder.Write(msg)
 	}
 
 	return errors.New("responder is nil")
@@ -144,7 +143,7 @@ func (obj *Object) ResponeWithAck(ack uint8) error {
 func (obj *Object) EncodeResponse() ([]byte, error) {
 	switch obj.Version {
 
-	case PROTOCOL_V1:
+	case ProtocolV1:
 		return EncodeResponseV1(*obj.Response), nil
 
 	default:
@@ -162,7 +161,7 @@ func parseProtoVer(data []byte) (uint8, []byte, error) {
 	if len(data) < u8len {
 		return 0, nil, io.ErrUnexpectedEOF
 	}
-	ver := uint8(data[0])
+	ver := data[0]
 	return ver, data[u8len:], nil
 }
 
