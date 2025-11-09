@@ -39,7 +39,7 @@ import (
 
 // And finally the message payload that would be delivered to external sources.
 // If this is unused because the message is changing the internals of the broker
-// at runtime, then the field defaults to a vlaue of 0x00.
+// at runtime, then the field defaults to a value of 0x00.
 
 // # Globals Body
 // +-----------------+
