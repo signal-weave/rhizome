@@ -26,7 +26,7 @@ type Response struct {
 // *Response for encoding a response with ack status and corresponding UID to
 // send to the sender via the object.Responder.
 type Object struct {
-	// Which protocol decoding method that shoud be used to construct the
+	// Which protocol decoding method that should be used to construct the
 	// Object.
 	Version uint8
 
@@ -51,12 +51,12 @@ type Object struct {
 
 	// UID is an application construct, it isn't concretely defined at the
 	// protocol level.
-	// UID Is used for tracking purposes at the applicatoin level.
+	// UID Is used for tracking purposes at the application level.
 	UID string
 
 	// Rhizome Objects contain 4 arguments in string form.
-	// Applicatoins may cast them to different types after decoding.
-	// These are separate from the payload, and are uesd to instruct the CmdType
+	// Applications may cast them to different types after decoding.
+	// These are separate from the payload, and are used to instruct the CmdType
 	// in its execution.
 	Arg1, Arg2 string
 	Arg3, Arg4 string
@@ -113,7 +113,7 @@ func (obj *Object) PrintValues() {
 	fmt.Println(strings.Repeat("-", 80))
 }
 
-// ResponeWithAck sends the ack value (uint8) to the object's responder address.
+// RespondWithAck sends the ack value (uint8) to the object's responder address.
 // The ack value is application specific.
 // Unlike other protocols, like HTTP, Rhizome does not have universal response
 // codes.
@@ -122,9 +122,9 @@ func (obj *Object) PrintValues() {
 // A broker may have a set of values and some of those may overlap with another
 // application like a database.
 //
-// Applications should have their own resonse APIs or bulit in parsing or
+// Applications should have their own response APIs or built in parsing or
 // conversion functionality to make sense of application specific acks/nacks.
-func (obj *Object) ResponeWithAck(ack uint8) error {
+func (obj *Object) RespondWithAck(ack uint8) error {
 	if obj.Responder != nil {
 		obj.Response.Ack = ack
 
@@ -211,8 +211,6 @@ func EncodeResponse(obj *Object) ([]byte, error) {
 		return EncodeResponseV1(*obj.Response), nil
 
 	default:
-		return nil, fmt.Errorf(
-			"unable to encode response for %s", obj.Responder.RemoteAddr(),
-		)
+		return nil, fmt.Errorf("unable to encode response for %s", obj.Responder.RemoteAddr())
 	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 //------------------------------------------------------------------------------
-// Byte buffer handling for decoding string, byte arrays, and unisnged integer
+// Byte buffer handling for decoding string, byte arrays, and unassigned integer
 // values.
 
 // Notably these do not create Mycelia error types because they were very low
