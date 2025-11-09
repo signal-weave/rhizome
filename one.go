@@ -79,9 +79,7 @@ func decodeV1(data []byte, obj *Object) (*Object, error) {
 	// Payload
 	payload, err := readBytesU16(r)
 	if err != nil {
-		msg := fmt.Sprintf(
-			"Unable to parse payload from %s: %s", obj.Responder.RemoteAddr(), err,
-		)
+		msg := fmt.Sprintf("Unable to parse payload from %s: %s", obj.Responder.RemoteAddr(), err)
 		err := errors.New(msg)
 		return nil, err
 	}
@@ -155,36 +153,28 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg1, err := readStringU8(r)
 	fromAddr := cmd.Responder.RemoteAddr()
 	if err != nil {
-		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 1, fromAddr, err,
-		)
+		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 1, fromAddr, err)
 		return nil, err
 	}
 	cmd.Arg1 = arg1
 
 	arg2, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf(
-			"unable to parse argument position %d for %s, %s", 2, fromAddr, err,
-		)
+		err := fmt.Errorf("unable to parse argument position %d for %s, %s", 2, fromAddr, err)
 		return nil, err
 	}
 	cmd.Arg2 = arg2
 
 	arg3, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 3, fromAddr, err,
-		)
+		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 3, fromAddr, err)
 		return nil, err
 	}
 	cmd.Arg3 = arg3
 
 	arg4, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 4, fromAddr, err,
-		)
+		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 4, fromAddr, err)
 		return nil, err
 	}
 	cmd.Arg4 = arg4
