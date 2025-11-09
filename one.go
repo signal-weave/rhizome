@@ -153,10 +153,10 @@ func parseTrackingHeader(r io.Reader, cmd *Object) (*Object, error) {
 // Parse the four argument fields from the reader.
 func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg1, err := readStringU8(r)
-	from_addr := cmd.Responder.RemoteAddr()
+	fromAddr := cmd.Responder.RemoteAddr()
 	if err != nil {
 		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 1, from_addr, err,
+			"unable to parse argument position %d for %s: %s", 1, fromAddr, err,
 		)
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg2, err := readStringU8(r)
 	if err != nil {
 		err := fmt.Errorf(
-			"unable to parse argument position %d for %s, %s", 2, from_addr, err,
+			"unable to parse argument position %d for %s, %s", 2, fromAddr, err,
 		)
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg3, err := readStringU8(r)
 	if err != nil {
 		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 3, from_addr, err,
+			"unable to parse argument position %d for %s: %s", 3, fromAddr, err,
 		)
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg4, err := readStringU8(r)
 	if err != nil {
 		err := fmt.Errorf(
-			"unable to parse argument position %d for %s: %s", 4, from_addr, err,
+			"unable to parse argument position %d for %s: %s", 4, fromAddr, err,
 		)
 		return nil, err
 	}
