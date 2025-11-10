@@ -61,6 +61,10 @@ type Object struct {
 	Arg1, Arg2 string
 	Arg3, Arg4 string
 
+	// What method of encoding to handle the payload bytes with.
+	// The currently denoted
+	PayloadEncoding PayloadEncoding
+
 	// The generic information, if any, to forward to the subscribing system.
 	Payload []byte
 }
@@ -68,6 +72,7 @@ type Object struct {
 func NewObject(
 	objType, cmdType, AckPlcy uint8,
 	uid, arg1, arg2, arg3, arg4 string,
+	payloadEncoding PayloadEncoding,
 	payload []byte) *Object {
 
 	return &Object{
@@ -88,28 +93,38 @@ func NewObject(
 		Arg3: arg3,
 		Arg4: arg4,
 
-		Payload: payload,
+		PayloadEncoding: payloadEncoding,
+		Payload:         payload,
 	}
 }
 
 // PrintValues prints each field on the object...
 func (obj *Object) PrintValues() {
 	fmt.Println(strings.Repeat("-", 80))
-	fmt.Println("ObjType:", obj.ObjType)
-	fmt.Println("CmdType:", obj.CmdType)
+	fmt.Println("Obj Type:", obj.ObjType)
+	fmt.Println("Cmd Type:", obj.CmdType)
 	fmt.Println()
+
 	if obj.Responder != nil {
-		fmt.Println("ReturnAddress:", obj.Responder.C.RemoteAddr().String())
+		fmt.Println("Return Address:", obj.Responder.RemoteAddr())
+	} else {
+		fmt.Println("Return Address: nil")
 	}
 	fmt.Println()
+
 	fmt.Println("UID:", obj.UID)
 	fmt.Println()
+
 	fmt.Println("Arg1:", obj.Arg1)
 	fmt.Println("Arg2:", obj.Arg2)
 	fmt.Println("Arg3:", obj.Arg3)
 	fmt.Println("Arg4:", obj.Arg4)
+	fmt.Println()
 
-	fmt.Println("Payload:", string(obj.Payload))
+	fmt.Println("Payload Encoding:", obj.PayloadEncoding.String())
+	fmt.Println()
+
+	fmt.Println("Raw Payload:", string(obj.Payload))
 	fmt.Println(strings.Repeat("-", 80))
 }
 

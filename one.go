@@ -10,7 +10,7 @@ import (
 // -----------------------------------------------------------------------------
 // Version 1 object decoding.
 // -----------------------------------------------------------------------------
-// *Note that this is a messaging protocol, not a file transfer protocol
+// *Note that this is a messaging protocol, not a file transfer protocol.
 // -----------------------------------------------------------------------------
 // The version 1 protocol looks as follows:
 
@@ -37,14 +37,16 @@ import (
 // |  u8 len arg1  |  u8 len arg2  |  u8 len arg3  |  u8 len arg4  |
 // +---------------+---------------+---------------+---------------+
 
-// And finally the message payload that would be delivered to external sources.
+// And finally the message payload that would be delivered to external sources,
+// and the encoding method used to pack it into the message. Consumers can
+// reference this field for decoding.
 // If this is unused because the message is changing the internals of the broker
 // at runtime, then the field defaults to a value of 0x00.
 
 // # Globals Body
-// +-----------------+
-// | u16 len payload |
-// +-----------------+
+// +------------------+-----------------+
+// | u8 encoding type | u16 len payload |
+// +------------------+-----------------+
 
 // -----------------------------------------------------------------------------
 // Responses are a three field message: message length prefix, corresponding
@@ -73,6 +75,11 @@ func decodeV1(data []byte, obj *Object) (*Object, error) {
 	}
 	// Arg fields
 	obj, err = parseArgumentFields(r, obj)
+	if err != nil {
+		return nil, err
+	}
+	// PayloadEncoding
+	obj, err = parsePayloadEncoding(r, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +186,14 @@ func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	}
 	cmd.Arg4 = arg4
 
+	return cmd, nil
+}
+
+func parsePayloadEncoding(r io.Reader, cmd *Object) (*Object, error) {
+	if err := readU8(r, (*uint8)(&cmd.PayloadEncoding)); err != nil {
+		err := fmt.Errorf("unable to parse payload encoding type from %s", cmd.Responder.RemoteAddr())
+		return nil, err
+	}
 	return cmd, nil
 }
 
