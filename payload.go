@@ -6,14 +6,14 @@ package rhizome
 type PayloadEncoding uint8
 
 const (
-	EncodingJson = iota
+	EncodingNA = iota // NA should be first, just in case ordering changes.
+	EncodingJson
 	EncodingXml
 	EncodingYaml
 	EncodingCsv
 	EncodingToml
 	EncodingIni
 	EncodingProtobuf
-	EncodingNA
 )
 
 var EncodingName = map[PayloadEncoding]string{
