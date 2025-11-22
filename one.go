@@ -155,34 +155,37 @@ func parseTrackingHeader(r io.Reader, cmd *Object) (*Object, error) {
 	return cmd, nil
 }
 
+func parseArgError(pos int, fromAddr string, err error) error {
+	return fmt.Errorf(
+		"unable to parse argument position %d for %s: %s",
+		pos, fromAddr, err,
+	)
+}
+
 // Parse the four argument fields from the reader.
 func parseArgumentFields(r io.Reader, cmd *Object) (*Object, error) {
 	arg1, err := readStringU8(r)
 	fromAddr := cmd.Responder.RemoteAddr()
 	if err != nil {
-		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 1, fromAddr, err)
-		return nil, err
+		return nil, parseArgError(1, fromAddr, err)
 	}
 	cmd.Arg1 = arg1
 
 	arg2, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf("unable to parse argument position %d for %s, %s", 2, fromAddr, err)
-		return nil, err
+		return nil, parseArgError(2, fromAddr, err)
 	}
 	cmd.Arg2 = arg2
 
 	arg3, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 3, fromAddr, err)
-		return nil, err
+		return nil, parseArgError(3, fromAddr, err)
 	}
 	cmd.Arg3 = arg3
 
 	arg4, err := readStringU8(r)
 	if err != nil {
-		err := fmt.Errorf("unable to parse argument position %d for %s: %s", 4, fromAddr, err)
-		return nil, err
+		return nil, parseArgError(4, fromAddr, err)
 	}
 	cmd.Arg4 = arg4
 
@@ -198,6 +201,59 @@ func parsePayloadEncoding(r io.Reader, cmd *Object) (*Object, error) {
 }
 
 //--------Encoding--------------------------------------------------------------
+
+// encodeV1 builds a v1 message:
+//
+// [ u8 ver ][ u8 obj_type ][ u8 cmd_type ][ u8 ack_policy ]
+// [ u8 len uid ][ u8 len arg1 ][ u8 len arg2 ][ u8 len arg3 ][ u8 len arg4 ]
+// [ u8 encoding ][ u16 len payload ][ payload... ]
+func encodeV1(obj *Object) ([]byte, error) {
+	// Basic validation to match decoder expectations.
+	if obj.UID == "" {
+		return nil, errors.New("encodeV1: UID must not be empty")
+	}
+	if len(obj.Payload) > int(64*BytesInKilobyte-1) { // 64KB - 1
+		return nil, fmt.Errorf("encodeV1: payload too large: %d bytes", len(obj.Payload))
+	}
+
+	body := bytes.NewBuffer(nil)
+
+	// Version
+	writeU8(body, ProtocolV1)
+
+	// Fixed header
+	writeU8(body, obj.ObjType)
+	writeU8(body, obj.CmdType)
+	writeU8(body, obj.AckPlcy)
+
+	// Tracking + arguments (all u8-len strings)
+	if err := writeString8(body, obj.UID); err != nil {
+		return nil, fmt.Errorf("encodeV1: uid: %w", err)
+	}
+	if err := writeString8(body, obj.Arg1); err != nil {
+		return nil, fmt.Errorf("encodeV1: arg1: %w", err)
+	}
+	if err := writeString8(body, obj.Arg2); err != nil {
+		return nil, fmt.Errorf("encodeV1: arg2: %w", err)
+	}
+	if err := writeString8(body, obj.Arg3); err != nil {
+		return nil, fmt.Errorf("encodeV1: arg3: %w", err)
+	}
+	if err := writeString8(body, obj.Arg4); err != nil {
+		return nil, fmt.Errorf("encodeV1: arg4: %w", err)
+	}
+
+	// Payload encoding (u8) + payload (u16-len + bytes)
+	writeU8(body, uint8(obj.PayloadEncoding))
+	writeU16(body, uint16(len(obj.Payload)))
+	if len(obj.Payload) != 0 {
+		body.Write(obj.Payload)
+	}
+
+	return body.Bytes(), nil
+}
+
+//--------Response--------------------------------------------------------------
 
 // EncodeResponseV1 encodes a protocol.Response object into []byte.
 func EncodeResponseV1(response Response) []byte {

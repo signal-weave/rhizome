@@ -76,6 +76,8 @@ func NewObject(
 	payload []byte) *Object {
 
 	return &Object{
+		Version: ProtocolV1,
+
 		Response: &Response{
 			UID: uid,
 			Ack: AckUnknown,
@@ -213,8 +215,18 @@ func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 		return decodeV1(rest, obj)
 
 	default:
-		err := errors.New("unable to parse protocol object")
-		return nil, err
+		return nil, fmt.Errorf("unsupported protocol version: %d", obj.Version)
+	}
+}
+
+// EncodeFrame serializes an Object into a single byte slice suitable for sending
+// over the wire. It switches on obj.Version to remain forward-compatible.
+func EncodeFrame(obj *Object) ([]byte, error) {
+	switch obj.Version {
+	case ProtocolV1:
+		return encodeV1(obj)
+	default:
+		return nil, fmt.Errorf("unsupported protocol version: %d", obj.Version)
 	}
 }
 
