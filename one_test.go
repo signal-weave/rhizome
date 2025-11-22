@@ -6,115 +6,139 @@ import (
 	"io"
 	"net"
 	"testing"
+	"time"
 )
 
-// -------Message---------------------------------------------------------------
+// -------net.Conn Substitute---------------------------------------------------
 
-// encodeV1MessageFrame constructs a complete v1 message frame buffer for testing.
-func encodeV1MessageFrame(
-	version uint8, objType, cmdType, ackPolicy uint8, uid string,
-	args [4]string, encoding PayloadEncoding, payload []byte,
-) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
+type dummyAddr struct{ s string }
 
-	// Version byte first
-	writeU8(buf, version)
+func (d dummyAddr) Network() string { return "dummy" }
+func (d dummyAddr) String() string  { return d.s }
 
-	// Base header
-	writeU8(buf, objType)
-	writeU8(buf, cmdType)
-	writeU8(buf, ackPolicy)
+type dummyConn struct{}
 
-	// UID (string u8)
-	if err := writeString8(buf, uid); err != nil {
-		return nil, err
-	}
+func (d *dummyConn) Read(b []byte) (int, error)         { return 0, io.EOF }
+func (d *dummyConn) Write(b []byte) (int, error)        { return len(b), nil }
+func (d *dummyConn) Close() error                       { return nil }
+func (d *dummyConn) LocalAddr() net.Addr                { return dummyAddr{"local:0"} }
+func (d *dummyConn) RemoteAddr() net.Addr               { return dummyAddr{"remote:0"} }
+func (d *dummyConn) SetDeadline(t time.Time) error      { return nil }
+func (d *dummyConn) SetReadDeadline(t time.Time) error  { return nil }
+func (d *dummyConn) SetWriteDeadline(t time.Time) error { return nil }
 
-	// 4 argument strings
-	for _, a := range args {
-		if err := writeString8(buf, a); err != nil {
-			return nil, err
-		}
-	}
-
-	// Payload encoding (u8)
-	writeU8(buf, uint8(encoding))
-
-	// Payload (u16 length + data)
-	writeU16(buf, uint16(len(payload)))
-	buf.Write(payload)
-
-	return buf.Bytes(), nil
+func newResponder() *ConnResponder {
+	return NewConnResponder(&dummyConn{})
 }
 
-func TestDecodeFrameMatches(t *testing.T) {
-	args := [4]string{"arg1", "arg2", "", ""}
-	payload := []byte("hello")
+// -------Helpers---------------------------------------------------------------
 
-	msg, err := encodeV1MessageFrame(
-		ProtocolV1,
-		ObjDelivery,
-		CmdSend,
-		AckPlcyNoreply,
-		"uid-123",
-		args,
+func assertObjectsEqual(t *testing.T, want, got *Object) {
+	t.Helper()
+
+	if got.Version != want.Version {
+		t.Fatalf("Version mismatch: got %d want %d", got.Version, want.Version)
+	}
+	if got.ObjType != want.ObjType {
+		t.Fatalf("ObjType mismatch: got %d want %d", got.ObjType, want.ObjType)
+	}
+	if got.CmdType != want.CmdType {
+		t.Fatalf("CmdType mismatch: got %d want %d", got.CmdType, want.CmdType)
+	}
+	if got.AckPlcy != want.AckPlcy {
+		t.Fatalf("AckPlcy mismatch: got %d want %d", got.AckPlcy, want.AckPlcy)
+	}
+	if got.UID != want.UID {
+		t.Fatalf("UID mismatch: got %q want %q", got.UID, want.UID)
+	}
+	if got.Arg1 != want.Arg1 || got.Arg2 != want.Arg2 || got.Arg3 != want.Arg3 || got.Arg4 != want.Arg4 {
+		t.Fatalf("arg mismatch: got (%q,%q,%q,%q) want (%q,%q,%q,%q)",
+			got.Arg1, got.Arg2, got.Arg3, got.Arg4, want.Arg1, want.Arg2, want.Arg3, want.Arg4)
+	}
+	if got.PayloadEncoding != want.PayloadEncoding {
+		t.Fatalf("PayloadEncoding mismatch: got %v want %v", got.PayloadEncoding, want.PayloadEncoding)
+	}
+	if !bytes.Equal(got.Payload, want.Payload) {
+		t.Fatalf("Payload mismatch: got %v want %v", got.Payload, want.Payload)
+	}
+}
+
+// -------Encoding / Decoding---------------------------------------------------
+
+func TestEncodeV1_RoundTrip_Basic(t *testing.T) {
+	obj := NewObject(
+		ObjDelivery, CmdSend, AckUnknown,
+		"uid-123", "arg1", "arg2", "arg3", "arg4",
 		EncodingJson,
-		payload,
+		[]byte(`{"hello":"world"}`),
 	)
+	obj.Version = ProtocolV1
+
+	encoded, err := encodeV1(obj)
 	if err != nil {
-		t.Fatalf("buildV1Message error: %v", err)
+		t.Fatalf("encodeV1 error: %v", err)
 	}
 
-	c1, c2 := net.Pipe()
-	defer c1.Close()
-	defer c2.Close()
+	// version byte should be first
+	if len(encoded) == 0 || encoded[0] != ProtocolV1 {
+		t.Fatalf("expected first byte to be ProtocolV1 (%d), got %v", ProtocolV1, encoded[:1])
+	}
 
-	resp := NewConnResponder(c1)
-
-	obj, err := DecodeFrame(msg, resp)
+	// Decode the whole frame (DecodeFrame expects the version byte to be present)
+	round, err := DecodeFrame(encoded, newResponder())
 	if err != nil {
 		t.Fatalf("DecodeFrame error: %v", err)
 	}
 
-	if obj.Version != ProtocolV1 {
-		t.Fatalf("Protocol Version mismatch: got %v, want %v", obj.Version, "1")
-	}
-	if obj.ObjType != ObjDelivery {
-		t.Fatalf("Object type mismatch: got %v, want %v", obj.ObjType, ObjDelivery)
-	}
-	if obj.CmdType != CmdSend {
-		t.Fatalf("Command type mismatch: got %v, want %v", obj.CmdType, CmdSend)
-	}
-	if obj.AckPlcy != AckPlcyNoreply {
-		t.Fatalf("Ack policy mismatch: got %v, want %v", obj.AckPlcy, AckPlcyNoreply)
-	}
-	if obj.UID != "uid-123" {
-		t.Fatalf("UID mismatch: got %q", obj.UID)
+	assertObjectsEqual(t, obj, round)
+}
+
+func TestEncodeV1_RoundTrip_EmptyPayload(t *testing.T) {
+	obj := NewObject(
+		ObjDelivery, CmdSend, AckUnknown,
+		"uid-000", "", "", "", "",
+		EncodingNA,
+		nil,
+	)
+	obj.Version = ProtocolV1
+
+	encoded, err := encodeV1(obj)
+	if err != nil {
+		t.Fatalf("encodeV1 error: %v", err)
 	}
 
-	if obj.Arg1 != "arg1" {
-		t.Fatalf("arg1 mismatch: got %s, want %s", obj.Arg1, "arg1")
-	}
-	if obj.Arg2 != "arg2" {
-		t.Fatalf("arg1 mismatch: got %s, want %s", obj.Arg2, "arg2")
-	}
-	if obj.Arg3 != "" {
-		t.Fatalf("arg1 mismatch: got %s, want %s", obj.Arg3, "")
-	}
-	if obj.Arg4 != "" {
-		t.Fatalf("arg1 mismatch: got %s, want %s", obj.Arg4, "")
+	// Decode
+	round, err := DecodeFrame(encoded, newResponder())
+	if err != nil {
+		t.Fatalf("DecodeFrame error: %v", err)
 	}
 
-	if obj.PayloadEncoding != EncodingJson {
-		t.Fatalf("PayloadEncoding mismatch: got %v, want %v", obj.PayloadEncoding, EncodingJson)
-	}
-	if got, want := obj.PayloadEncoding.String(), "json"; got != want {
-		t.Fatalf("PayloadEncoding.String mismatch: got %q, want %q", got, want)
-	}
-	if string(obj.Payload) != string(payload) {
-		t.Fatalf("Payload mismatch: got %q, want %q", string(obj.Payload), string(payload))
+	assertObjectsEqual(t, obj, round)
+}
+
+func TestEncodeV1_PayloadIntegrity(t *testing.T) {
+	payload := bytes.Repeat([]byte{0xAB}, 64) // arbitrary payload
+	obj := NewObject(
+		ObjDelivery, CmdSend, AckUnknown,
+		"uid-payload", "a1", "a2", "a3", "a4",
+		EncodingYaml,
+		payload,
+	)
+	obj.Version = ProtocolV1
+
+	encoded, err := encodeV1(obj)
+	if err != nil {
+		t.Fatalf("encodeV1 error: %v", err)
 	}
 
+	round, err := DecodeFrame(encoded, newResponder())
+	if err != nil {
+		t.Fatalf("DecodeFrame error: %v", err)
+	}
+
+	if !bytes.Equal(round.Payload, payload) {
+		t.Fatalf("payload mismatch: got %v, want %v", round.Payload, payload)
+	}
 }
 
 // -------Response--------------------------------------------------------------
