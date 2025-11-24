@@ -56,7 +56,7 @@ type Object struct {
 
 	// Rhizome Objects contain 4 arguments in string form.
 	// Applications may cast them to different types after decoding.
-	// These are separate from the payload, and are used to instruct the CmdType
+	// These are separate from the payload and are used to instruct the CmdType
 	// in its execution.
 	Arg1, Arg2 string
 	Arg3, Arg4 string
@@ -136,11 +136,11 @@ func (obj *Object) PrintValues() {
 // codes.
 //
 // Responses are implemented at the application level.
-// A broker may have a set of values and some of those may overlap with another
+// A broker may have a set of values, and some of those may overlap with another
 // application like a database.
 //
-// Applications should have their own response APIs or built in parsing or
-// conversion functionality to make sense of application specific acks/nacks.
+// Applications should have their own response APIs or built-in parsing or
+// conversion functionality to make sense of application-specific acks/nacks.
 func (obj *Object) RespondWithAck(ack uint8) error {
 	if obj.Responder != nil {
 		obj.Response.Ack = ack
@@ -156,7 +156,7 @@ func (obj *Object) RespondWithAck(ack uint8) error {
 	return errors.New("responder is nil")
 }
 
-// EncodeResponse serializes obj and returns encoded byte array or error.
+// EncodeResponse serializes obj and returns an encoded byte array or error.
 func (obj *Object) EncodeResponse() ([]byte, error) {
 	switch obj.Version {
 
@@ -196,7 +196,7 @@ func DecodeFrame(line []byte, resp *ConnResponder) (*Object, error) {
 		Responder: resp,
 	}
 
-	// Signal Weave apps always works off of the same type of object.
+	// Signal Weave apps always work off of the same type of object.
 	// Message objects may evolve over time, adding new fields for new
 	// functionality, but the application should remain compatible with previous
 	// client side API versions.
