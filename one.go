@@ -37,7 +37,7 @@ import (
 // |  u8 len arg1  |  u8 len arg2  |  u8 len arg3  |  u8 len arg4  |
 // +---------------+---------------+---------------+---------------+
 
-// And finally the message payload that would be delivered to external sources,
+// And finally, the message payload that would be delivered to external sources
 // and the encoding method used to pack it into the message. Consumers can
 // reference this field for decoding.
 // If this is unused because the message is changing the internals of the broker
@@ -49,7 +49,7 @@ import (
 // +------------------+-----------------+
 
 // -----------------------------------------------------------------------------
-// Responses are a three field message: message length prefix, corresponding
+// Responses are a three-field message: message length prefix, corresponding
 // uid, and the ack/nack value.
 
 // +---------+------------+--------------+
@@ -212,7 +212,7 @@ func encodeV1(obj *Object) ([]byte, error) {
 	if obj.UID == "" {
 		return nil, errors.New("encodeV1: UID must not be empty")
 	}
-	if len(obj.Payload) > int(64*BytesInKilobyte-1) { // 64KB - 1
+	if len(obj.Payload) > 64*BytesInKilobyte-1 {
 		return nil, fmt.Errorf("encodeV1: payload too large: %d bytes", len(obj.Payload))
 	}
 
