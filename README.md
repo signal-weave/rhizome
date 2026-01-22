@@ -56,7 +56,6 @@ type Object struct {
     Arg3, Arg4 string
     
     // What method of encoding to handle the payload bytes with.
-    // The currently denoted
     PayloadEncoding PayloadEncoding
     
     // The generic information, if any, to forward to the subscribing system.
